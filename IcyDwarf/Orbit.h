@@ -686,12 +686,12 @@ int Orbit (int os, int argc, char *argv[], char path[1024], int im,
 
 			fout = fopen(title,"a");
 			if (fout == NULL) printf("IcyDwarf: Error opening %s output file.\n",title);
-			else fprintf(fout,"Orbit: itime=%d time steps, time=%g Gyr, -dtime*d_aorb_pl = %g m - -dtime*d_aorb_ring (= %g m) > aorb = %g m, moon %d crashes into planet\n",
-					itime, (double)itime*dtime/Gyr2sec, -dtime*d_aorb_pl, -dtime*d_aorb_ring, (*aorb)[im], im);
+			else fprintf(fout,"Orbit: itime=%d time steps, time=%g Gyr, -dtime*d_aorb_moon (= %g m) + -dtime*d_aorb_pl (= %g m) + -dtime*d_aorb_ring (= %g m) > aorb = %g m, moon %d crashes into planet\n",
+					itime, (double)itime*dtime/Gyr2sec, -dtime*d_aorb_moon, -dtime*d_aorb_pl, -dtime*d_aorb_ring, (*aorb)[im], im);
 			fclose (fout);
 			free (title);
-			printf("Orbit: itime=%d time steps, time=%g Gyr, -dtime*d_aorb_pl = %g m - -dtime*d_aorb_ring (= %g m) > aorb = %g m, moon %d crashes into planet\n",
-					itime, (double)itime*dtime/Gyr2sec, -dtime*d_aorb_pl, -dtime*d_aorb_ring, (*aorb)[im], im);
+			printf("Orbit: itime=%d time steps, time=%g Gyr, -dtime*d_aorb_moon (= %g m) + -dtime*d_aorb_pl (= %g m) + -dtime*d_aorb_ring (= %g m) > aorb = %g m, moon %d crashes into planet\n",
+					itime, (double)itime*dtime/Gyr2sec, -dtime*d_aorb_moon, -dtime*d_aorb_pl, -dtime*d_aorb_ring, (*aorb)[im], im);
 			(*aorb)[im] = -1.0e-10; // Not 0 so the switches in PlanetSystem.h allow running Thermal() for objects whose orbital evolution is not tracked (e.g., dwarf planets)
 			(*eorb)[im] = 0.0;
 		}

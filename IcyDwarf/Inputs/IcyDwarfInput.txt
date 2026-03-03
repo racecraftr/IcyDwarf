@@ -24,40 +24,40 @@ ICY DWARF v25.x INPUT FILE - Saturn system
 | Love number k2; zonal gravity harmonics J2, J4| 0.382 16290.573e-6 -935.314e-6                       |
 | Resonant tidal locking with inertial waves?   | 1 # ignored if Eccentricity Model = 2                |
 | Spin period (h)                               | 10.546   (Helled et al. 2015)                        |
-| Number of moons                               | 5                                                    |
+| Number of moons                               | 1                                                    |
 | Ring mass (kg) (0 if no rings)                | 1.54e19                                              |
 | Ring inner edge (km)                          | 92000                                                |
 | Ring outer edge (km)                          | 140000                                               |
 |-----------------------------------------------|------------------------------------------------------|
-| Icy world parameters |||||||||||||||||||||||||| Mimas    | Enceladus| Tethys   | Dione    | Rhea     |
+| Icy world parameters |||||||||||||||||||||||||| Rhea     |
 |-----------------------------------------------|----------|----------|----------|----------|----------|
-| Radius assuming zero porosity (km)            | 186.5    | 252.0    | 507.7    | 556.5    | 762.2    |
-| Density assuming zero porosity (g cm-3)       | 1.378    | 1.611    | 1.127    | 1.517    | 1.267    |
-| Surface temperature (K)                       | 76       | 68       | 68       | 70       | 72       |
-| Initial temperature (K)                       | 100      | 100      | 100      | 100      | 100      |
-| Time of formation (Myr)                       | 3305     | 1918     | 1201     | 699      | 337      |
-| Formed from ring?                             | 1        | 1        | 1        | 1        | 1        |
-| Ammonia w.r.t. water                          | 0.01     | 0.01     | 0.01     | 0.01     | 0.01     |
-| Briny liquid? y=1, n=0                        | 0        | 0        | 0        | 0        | 0        |
-| Initial degree of hydration                   | 1        | 1        | 1        | 1        | 1        |
-| Hydrate/dehydrate?                            | 1        | 1        | 1        | 1        | 1        |
-| Initial porosity volume fraction              | 0.2      | 0.2      | 0.2      | 0.2      | 0.2      |
-| Fraction of rock in fines                     | 0        | 0        | 0        | 0        | 0        |
-| Core ice/liquid water volume fraction         | 0.25     | 0.25     | 0.25     | 0.25     | 0.25     |
-| Start differentiated?                         | 0        | 0        | 0        | 0        | 0        |
-| Initial orbital semi-major axis (km)          | 160000   | 160000   | 160000   | 160000   | 160000   |
-| Initial orbital eccentricity                  | 0.02     | 0.02     | 0.02     | 0.02     | 0.02     |
-| Initial orbital inclination (º)               | 0        | 0        | 0        | 0        | 0        |
-| Initial obliquity (º)                         | 0        | 0        | 0        | 0        | 0        |
-| Allow orbit to change?                        | 1        | 1        | 1        | 1        | 1        |
-| Retrograde orbit?                             | 0        | 0        | 0        | 0        | 0        |
-| Resonant tidal locking timescale (Gyr)        | 10       | 10       | 10       | 10       | 10       |
+| Radius assuming zero porosity (km)            | 762.2    |
+| Density assuming zero porosity (g cm-3)       | 1.267    |
+| Surface temperature (K)                       | 72       |
+| Initial temperature (K)                       | 270      |
+| Time of formation (Myr)                       | 4000     |
+| Formed from ring?                             | 0        |
+| Ammonia w.r.t. water                          | 0.01     |
+| Briny liquid? y=1, n=0                        | 0        |
+| Initial degree of hydration                   | 1        |
+| Hydrate/dehydrate?                            | 1        |
+| Initial porosity volume fraction              | 0.7      |
+| Fraction of rock in fines                     | 0        |
+| Core ice/liquid water volume fraction         | 0        |
+| Start differentiated?                         | 0        |
+| Initial orbital semi-major axis (km)          | 482525   |
+| Initial orbital eccentricity                  | 0.001    |
+| Initial orbital inclination (º)               | 7        |
+| Initial obliquity (º)                         | 5        | #Cassini state for incl 3.5 deg is 0.2º
+| Allow orbit to change?                        | 1        |
+| Retrograde orbit?                             | 0        |
+| Resonant tidal locking timescale (Gyr)        | 10       |
 |-----------------------------------------------|------------------------------------------------------|
 | Dry rock density (g cm-3)                     | 3.8                                                  |
 | Hydrated rock density (g cm-3)                | 2.9                                                  |
 | Chondrite type? CI=0 CO=1                     | 0                                                    |
 | Tidal rheology? Maxw=2 Burg=3 Andr=4 SunCoop=5| 5                                                    |
-| Eccentricity Model? e2=0 e10-CPL=1 e10-CTL=2  | 0                                                    |
+| Eccentricity Model? e2=0 e10-CPL=1 e10-CTL=2  | 2                                                    |
 | Tidal heating x...?                           | 1                                                    |
 | Lookup tbl for orbit evol? #par #rows Dtime(y)| 0 10 10000 5000                                      |
 |-----------------------------------------------|------------------------------------------------------|

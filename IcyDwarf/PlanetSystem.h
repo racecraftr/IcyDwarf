@@ -1090,7 +1090,7 @@ int PlanetSystem(int os, int argc, char *argv[], char path[1024], int warnings, 
 		}
 
 		if (Mprim > 0.0) {
-			if (Mring > 0.0) ringSurfaceDensity = Mring/(PI_greek*(aring_out*aring_out-aring_in*aring_in));
+			ringSurfaceDensity = Mring/(PI_greek*(aring_out*aring_out-aring_in*aring_in));
 
 			switch(Qmode) {
 			case 0: // Q changes linearly

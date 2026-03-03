@@ -532,7 +532,7 @@ int Thermal (int os, int argc, char *argv[], char path[1024], char outputpath[10
 //			Tpow = 0.1*(double)j - 4;
 //			(*tilT) = pow(10.0, Tpow);
 
-		if (eorb > DBL_EPSILON) { // TODO Shouldn't there be a dependence on the value of eccentricity?
+		if (eorb > DBL_EPSILON) {
 			TROPF(*cesq, *tilT, diss_type,  tilom, 2, 0, 0.5, &(W_fluidtide[0]), &knFsF, &kLovenF); // G20 term, Legendre polynomial P20 = 0.5 (TODO or -0.5?), see https://en.wikipedia.org/wiki/Associated_Legendre_polynomials
 			TROPF(*cesq, *tilT, diss_type, -tilom, 2, 2, 3.0, &(W_fluidtide[1]), &knFsF, &kLovenF); // G22W term (retrograde), Legendre polynomial P22 = 3
 			TROPF(*cesq, *tilT, diss_type,  tilom, 2, 2, 3.0, &(W_fluidtide[2]), &knFsF, &kLovenF); // G22E term (prograde), Legendre polynomial P22 = 3
