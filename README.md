@@ -16,48 +16,120 @@ The two codes can run independently of each other, so it's not necessary to inst
 
 # Installation
 
-The installation steps outlined below are valid for Mac OS 10.9+. *IcyDwarf* and *IcyDwarfPlot* could also run on Windows and Linux, but compilation instructions are not set up and external I/O handling needs to be modified in the source code. 
+**UPDATE (2026)**: The code has been updated to support **Windows, macOS, and Linux** systems! See the [Cross-Platform Porting Guide](PORTING_GUIDE.md) for details on the changes made to enable cross-platform compatibility.
+
+The installation steps outlined below are updated for cross-platform support. Platform-specific instructions are provided for Windows, macOS, and Linux. 
 
 ## Install *R*
 *R* is needed only for *IcyDwarf*, to run the geochemistry package *CHNOSZ*.
-Go to http://www.r-project.org and follow instructions.
+
+### Windows
+- Download from https://cran.r-project.org/bin/windows/base/
+- Run the installer and follow default options
+- Default installation path: `C:\Program Files\R\R-X.X.X`
+
+### macOS
+- Download from https://cran.r-project.org/bin/macosx/
+- Run the .pkg installer
+- Installation path: `/Library/Frameworks/R.framework/Resources`
+
+### Linux
+```bash
+# Ubuntu/Debian
+sudo apt-get install r-base r-base-dev
+
+# Fedora
+sudo dnf install R-core R-devel
+
+# Arch Linux
+sudo pacman -S r
+```
 
 ## Install *CHNOSZ*
-*CHNOSZ* is needed only for *IcyDwarf*. Open *R* using either the installed application icon or in a terminal by typing
+*CHNOSZ* is needed only for *IcyDwarf*. Open *R* and install the package:
 
-	R
-	
-In *R*, type the command
-
-	install.packages("CHNOSZ")
+### All Platforms
+```r
+R
+install.packages("CHNOSZ")
+```
 
 ## Install *Rcpp* and *RInside*
-*Rcpp* and *RInside* are libraries that allow *R* applications to be embedded in C or C++ codes. From a Terminal window, open *R* and install the *Rcpp* and *RInside* packages:
+*Rcpp* and *RInside* are libraries that allow *R* applications to be embedded in C or C++ codes.
 
-	install.packages("Rcpp")
-	install.packages("RInside")
+### All Platforms
+```r
+R
+install.packages("Rcpp")
+install.packages("RInside")
+```
 
 ## Install *IPHREEQC*
-The *IPHREEQC* library is a module that allows the *PHREEQC* application to be embedded in C or C++ codes. Go to http://wwwbrr.cr.usgs.gov/projects/GWC_coupled/phreeqc to download *IPHREEQC* (for Linux), unzip it, and follow the default installation instructions (you need admin credentials on your machine):
+The *IPHREEQC* library is a module that allows the *PHREEQC* application to be embedded in C or C++ codes.
 
-	./configure
-	make
-	make install
+### Windows
+- Download from https://www.usgs.gov/software/phreeqc-version-3
+- Run the Windows installer
+- Installation path: `C:\Program Files\PHREEQC`
 
-In v3.8.6, the *./configure* script omits copying a header file *PHRQ_exports.h* to the include folder. You can manually remedy this by copying, from the unzipped folder, *src/phreeqcpp/common/PHRQ_exports.h* to the */usr/local/include/* folder.
+### macOS
+```bash
+# Using Homebrew (if installed)
+brew install phreeqc
 
-## Install parallel processing capabilities
+# Or download and compile from source:
+# https://www.usgs.gov/software/phreeqc-version-3
+./configure
+make
+sudo make install
+```
 
-In Mac OS 10.8+, the default compiler *clang* has replaced the compiler *gcc*. By default, *clang* does not include parallel processing capabilities, slowing down execution of the *PlanetSystem* (moon system evolution) and *WaterRock_ParamExploration* (aqueous geochemical equilibrium computation across a wide parameter space) routines of *IcyDwarf* by a factor of ~5-8. Two options exist to remedy this:
+### Linux
+```bash
+# Ubuntu/Debian
+sudo apt-get install libiphreeqc-dev
 
-### Option 1: Install HPC's *gcc*
-This option does not appear to work for Mac Intel machines with recent MacOS software (e.g., *XCode* 15+), because the compiler either works for Intel chips (*gcc* version 11 or older) or recent Mac *Xcode* command line tools (*gcc* version 12 or more recent). It worked for *Xcode* 14 and older on Intel machines. It should work for recent Macs with current *Xcode* and M1-M3 chips, but this has not been tested. Go to http://hpc.sourceforge.net and follow the instructions there to download and install *gcc*.
-Once installed, you might need to break the symbolic link between the command *gcc* and *clang* by typing:
+# Or compile from source:
+# https://www.usgs.gov/software/phreeqc-version-3
+./configure
+make
+sudo make install
+```
 
-    alias gcc=/usr/local/bin/gcc
+**Note for v3.8.6**: The *./configure* script may omit copying a header file *PHRQ_exports.h* to the include folder. Manually copy *src/phreeqcpp/common/PHRQ_exports.h* to */usr/local/include/* if needed.
 
-### Option 2: Install OpenMP on macOS with Xcode tools
-This option should work for *XCode* 10.2+ by providing *Clang* with the needed parallel processing libraries (*OpenMP*). It works for a Mac Intel machine with *XCode* 15. Go to https://mac.r-project.org/openmp and follow the instructions there to download and install *OpenMP* libraries.
+## Install parallel processing capabilities (OpenMP)
+
+OpenMP enables parallel processing, which can speed up certain routines by 5-8x.
+
+### Windows
+- Install with your C/C++ compiler (MSVC, MinGW, or Clang all include OpenMP support)
+- Use `-fopenmp` flag when compiling with gcc/clang
+
+### macOS
+```bash
+# Option 1: Install via Homebrew
+brew install libomp
+
+# Option 2: Install via package from Mac R Project
+# https://mac.r-project.org/openmp
+# Download and install the pkg file
+```
+
+### Linux
+OpenMP usually comes pre-installed with gcc/clang. Ensure you have:
+```bash
+# Ubuntu/Debian
+sudo apt-get install libomp-dev
+
+# Fedora
+sudo dnf install libomp-devel
+
+# Arch Linux
+sudo pacman -S openmp
+```
+
+Compile with `-fopenmp` flag.
 
 ## Install *SDL2* (*IcyDwarfPlot* only)
 *SDL2* is a graphic library. Go to http://www.libsdl.org/projects. Download and install *SDL2*, *SDL2_image*, and *SDL2_ttf*. *SDL2_mixer* is not needed as the code doesn't play music for you yet.
