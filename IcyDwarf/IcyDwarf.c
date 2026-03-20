@@ -36,6 +36,7 @@
 #include "Thermal.h"
 #include "WaterRock.h"
 #include "WaterRock_ParamExplor.h"
+#include <string.h>
 
 int main(int argc, char *argv[]) {
 
@@ -328,6 +329,18 @@ int main(int argc, char *argv[]) {
 	nprim = (double)2.0 * PI_greek / input[i] / 3600.0;
 	i++;
 	nmoons = (int)input[i];
+
+	// instaed of initializing the entire array, why not just
+	// stop when nmoons is too much?
+	// that was going to happen anyways
+	if (nmoons > nmoons_max) {
+		printf("Too many moons (%d) for the code to handle. Increase nmoon_max "
+			   "(currently %d) in "
+			   "the source code\n",
+			   nmoons, nmoons_max);
+		exit(1); // exit with error instead of ok/success, as it is a code error
+	}
+
 	i++;
 	Mring = (double)input[i];
 	i++; // kg
@@ -471,12 +484,6 @@ int main(int argc, char *argv[]) {
 	for (j = 0; j < 4; j++) {
 		crack_species[j] = (int)input[i];
 		i++;
-	}
-
-	if (nmoons > nmoons_max) {
-		printf("Too many moons for the code to handle. Increase nmoon_max in "
-			   "the source code\n");
-		exit(0);
 	}
 
 	//-------------------------------------------------------------------

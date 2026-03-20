@@ -16,12 +16,12 @@
 #ifndef PLATFORM_COMPAT_H
 #define PLATFORM_COMPAT_H
 
-#include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define OS_WINDOWS 1
@@ -452,6 +452,371 @@ static int get_icydwarf_base_directory(const char *executable_path,
 	}
 
 	return 0;
+}
+
+/*
+ * ====================
+ * DYLD COMPATIBILITY LAYER
+ * ====================
+ * Provides cross-platform abstractions for macOS dyld functions
+ * using dlopen/dlsym/dladdr on Linux and Windows.
+ */
+
+/*
+ * dyld_load_dynamic_library()
+ *
+ * Cross-platform dynamic library loading.
+ * On macOS: uses NSAddImage() if available, otherwise dlopen()
+ * On Linux/Windows: uses dlopen()
+ *
+ * Parameters:
+ *   library_path - path to the library to load
+ *   options - platform-specific options (RTLD_LAZY on Unix, 0 on Windows)
+ *
+ * Returns:
+ *   Handle to loaded library on success, NULL on failure
+ */
+static void *dyld_load_dynamic_library(const char *library_path,
+									   int options) {
+	if (library_path == NULL) {
+		return NULL;
+	}
+
+#if OS_MACOS
+	// Try using dlopen first (available since macOS 10.3)
+	// This is preferred over deprecated NSAddImage()
+	void *handle = dlopen(library_path, options);
+	return handle;
+
+#elif OS_LINUX || OS_WINDOWS
+	// Linux and Windows use dlopen directly
+	void *handle = dlopen(library_path, options);
+	return handle;
+
+#endif
+	return NULL;
+}
+
+/*
+ * dyld_unload_dynamic_library()
+ *
+ * Cross-platform dynamic library unloading.
+ *
+ * Parameters:
+ *   library_handle - handle returned by dyld_load_dynamic_library()
+ *
+ * Returns:
+ *   0 on success, -1 on failure
+ */
+static int dyld_unload_dynamic_library(void *library_handle) {
+	if (library_handle == NULL) {
+		return -1;
+	}
+
+	if (dlclose(library_handle) != 0) {
+		return -1;
+	}
+	return 0;
+}
+
+/*
+ * dyld_lookup_symbol()
+ *
+ * Cross-platform symbol lookup in a loaded library.
+ * On macOS: uses NSLookupSymbolInImage() / NSAddressOfSymbol() or dlsym()
+ * On Linux/Windows: uses dlsym()
+ *
+ * Parameters:
+ *   library_handle - handle returned by dyld_load_dynamic_library()
+ *   symbol_name - name of the symbol to lookup
+ *
+ * Returns:
+ *   Pointer to the symbol on success, NULL on failure
+ */
+static void *dyld_lookup_symbol(void *library_handle,
+								 const char *symbol_name) {
+	if (library_handle == NULL || symbol_name == NULL) {
+		return NULL;
+	}
+
+#if OS_MACOS
+	// Use dlsym on macOS (available since 10.3, preferred over NSLookupSymbolInImage)
+	void *symbol = dlsym(library_handle, symbol_name);
+	return symbol;
+
+#elif OS_LINUX || OS_WINDOWS
+	// Linux and Windows use dlsym directly
+	void *symbol = dlsym(library_handle, symbol_name);
+	return symbol;
+
+#endif
+	return NULL;
+}
+
+/*
+ * dyld_get_symbol_address()
+ *
+ * Get the address of a symbol in the current process.
+ * On macOS: uses dlsym(RTLD_DEFAULT) or dladdr()
+ * On Linux/Windows: uses dlsym(RTLD_DEFAULT)
+ *
+ * Parameters:
+ *   symbol_name - name of the symbol to lookup
+ *
+ * Returns:
+ *   Pointer to the symbol on success, NULL on failure
+ */
+static void *dyld_get_symbol_address(const char *symbol_name) {
+	if (symbol_name == NULL) {
+		return NULL;
+	}
+
+#if OS_MACOS || OS_LINUX || OS_WINDOWS
+	// Use dlsym with RTLD_DEFAULT to search all loaded libraries
+	void *symbol = dlsym(RTLD_DEFAULT, symbol_name);
+	return symbol;
+
+#endif
+	return NULL;
+}
+
+/*
+ * dyld_get_error_message()
+ *
+ * Get the error message from the last dyld operation.
+ * All platforms use dlerror()
+ *
+ * Returns:
+ *   Error message string or NULL if no error
+ */
+static const char *dyld_get_error_message(void) {
+#if OS_MACOS || OS_LINUX || OS_WINDOWS
+	return dlerror();
+#endif
+	return NULL;
+}
+
+/*
+ * dyld_get_image_count()
+ *
+ * Cross-platform equivalent of _dyld_image_count().
+ * Returns the number of currently loaded images/libraries.
+ * Note: This is a best-effort implementation and may not be as
+ * efficient as the native macOS version.
+ *
+ * Returns:
+ *   Number of loaded images (0 or more), or -1 on error
+ */
+static int dyld_get_image_count(void) {
+#if OS_MACOS
+	// On macOS, we could use _dyld_image_count() but dlopen-based approach
+	// is more portable. We use a heuristic approach instead.
+	// Note: This is a simplified implementation that would benefit from
+	// platform-specific optimization.
+	return -1; // Not reliably implementable without OS-specific code
+
+#elif OS_LINUX
+	// On Linux, we can parse /proc/self/maps to count loaded libraries
+	FILE *maps = fopen("/proc/self/maps", "r");
+	if (maps == NULL) {
+		return -1;
+	}
+
+	int count = 0;
+	char line[4096];
+	char last_path[4096] = "";
+
+	while (fgets(line, sizeof(line), maps) != NULL) {
+		char path[4096] = "";
+		// Extract file path from maps line (last field)
+		if (sscanf(line, "%*s %*s %*s %*s %*s %4095s", path) == 1) {
+			// Count unique file paths only
+			if (path[0] != '\0' && strcmp(path, last_path) != 0 &&
+				path[0] != '[') { // Skip [heap], [stack], etc.
+				if (strstr(path, ".so") != NULL) {
+					count++;
+					strncpy(last_path, path, sizeof(last_path) - 1);
+					last_path[sizeof(last_path) - 1] = '\0';
+				}
+			}
+		}
+	}
+	fclose(maps);
+	return count;
+
+#elif OS_WINDOWS
+	// On Windows, would need EnumProcessModules from PSAPI
+	// Not implemented in this portable version
+	return -1;
+
+#endif
+	return -1;
+}
+
+/*
+ * dyld_get_library_version()
+ *
+ * Cross-platform equivalent of NSVersionOfRunTimeLibrary().
+ * Attempts to get version information from a loaded library.
+ * On most Unix systems, this requires parsing library file names or
+ * version symbols, which is platform-specific.
+ *
+ * Parameters:
+ *   library_name - name of the library (e.g., "bar" for libbar.so)
+ *
+ * Returns:
+ *   Version number on success (if available), or -1 if not found
+ */
+static int dyld_get_library_version(const char *library_name) {
+	if (library_name == NULL) {
+		return -1;
+	}
+
+#if OS_MACOS
+	// Could use NSVersionOfRunTimeLibrary() on macOS, but we use a
+	// cross-platform approach. Load the library and look for version symbols.
+	return -1; // Not easily implementable across platforms
+
+#elif OS_LINUX || OS_WINDOWS
+	// On Linux, would need to parse library version from .so.X.Y naming
+	// This is a simplified implementation
+	return -1;
+
+#endif
+	return -1;
+}
+
+/*
+ * dyld_load_library_with_search()
+ *
+ * Load a dynamic library with search path functionality.
+ * Similar to NSAddLibraryWithSearching() on macOS.
+ *
+ * Parameters:
+ *   library_path - path to the library to load
+ *
+ * Returns:
+ *   Handle to loaded library on success, NULL on failure
+ */
+static void *dyld_load_library_with_search(const char *library_path) {
+	if (library_path == NULL) {
+		return NULL;
+	}
+
+#if OS_MACOS || OS_LINUX
+	// Use RTLD_LAZY | RTLD_GLOBAL for similar behavior to NSAddLibraryWithSearching
+	void *handle = dlopen(library_path, RTLD_LAZY | RTLD_GLOBAL);
+	return handle;
+
+#elif OS_WINDOWS
+	// On Windows, RTLD_GLOBAL is not always supported
+	void *handle = dlopen(library_path, RTLD_LAZY);
+	return handle;
+
+#endif
+	return NULL;
+}
+
+/*
+ * dyld_for_each_loaded_image()
+ *
+ * Iterate through loaded images/libraries and call a callback for each.
+ * This is a simplified cross-platform version of _dyld_image_count +
+ * _dyld_get_image_header iteration.
+ *
+ * Parameters:
+ *   callback - function pointer called for each loaded image
+ *              signature: void callback(const char *image_path)
+ *
+ * Returns:
+ *   0 on success, -1 on failure
+ *
+ * Note: This is a best-effort implementation. The callback may not be
+ * called for all loaded libraries on all platforms.
+ */
+static int dyld_for_each_loaded_image(void (*callback)(const char *)) {
+	if (callback == NULL) {
+		return -1;
+	}
+
+#if OS_LINUX
+	// Parse /proc/self/maps to get loaded libraries
+	FILE *maps = fopen("/proc/self/maps", "r");
+	if (maps == NULL) {
+		return -1;
+	}
+
+	char line[4096];
+	char last_path[4096] = "";
+
+	while (fgets(line, sizeof(line), maps) != NULL) {
+		char path[4096] = "";
+		// Extract file path from maps line
+		if (sscanf(line, "%*s %*s %*s %*s %*s %4095s", path) == 1) {
+			// Call callback for unique library paths only
+			if (path[0] != '\0' && strcmp(path, last_path) != 0 &&
+				path[0] != '[' && strstr(path, ".so") != NULL) {
+				callback(path);
+				strncpy(last_path, path, sizeof(last_path) - 1);
+				last_path[sizeof(last_path) - 1] = '\0';
+			}
+		}
+	}
+	fclose(maps);
+	return 0;
+
+#elif OS_MACOS
+	// On macOS, we could use _dyld_image_count/_dyld_get_image_name
+	// but this would require including <mach-o/dyld.h>
+	// For now, use a more portable approach
+	return -1;
+
+#elif OS_WINDOWS
+	// Windows implementation would use EnumProcessModules
+	return -1;
+
+#endif
+	return -1;
+}
+
+/*
+ * dyld_dladdr()
+ *
+ * Cross-platform address lookup - find which library contains an address.
+ * Wrapper around dladdr() available on all Unix-like systems.
+ *
+ * Parameters:
+ *   address - memory address to lookup
+ *   dli_fname - (out) pointer to buffer for file name (can be NULL)
+ *   fname_size - size of dli_fname buffer
+ *
+ * Returns:
+ *   0 on success with information found, -1 on failure or no info available
+ */
+static int dyld_dladdr(const void *address, char *dli_fname,
+					   size_t fname_size) {
+	if (address == NULL) {
+		return -1;
+	}
+
+#if OS_MACOS || OS_LINUX
+	Dl_info info;
+	if (dladdr(address, &info) != 0) {
+		if (dli_fname != NULL && fname_size > 0 && info.dli_fname != NULL) {
+			strncpy(dli_fname, info.dli_fname, fname_size - 1);
+			dli_fname[fname_size - 1] = '\0';
+		}
+		return 0;
+	}
+	return -1;
+
+#elif OS_WINDOWS
+	// Windows doesn't have dladdr in the standard POSIX layer
+	// Would need StackWalk64 or similar
+	return -1;
+
+#endif
+	return -1;
 }
 
 #endif // PLATFORM_COMPAT_H

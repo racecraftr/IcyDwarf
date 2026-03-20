@@ -307,6 +307,90 @@ typedef struct {
 	double Wtide; // Tidal heating rate in W
 } thermalout;
 
+#define RUN_FLAG_THERMAL 0x0001
+#define RUN_FLAG_ATP 0x0002
+#define RUN_FLAG_AB 0x0004
+#define RUN_FLAG_CRACK_SPECIES 0x0008
+#define RUN_FLAG_GEOCHEM 0x0010
+#define RUN_FLAG_CRYOLAVA 0x0020
+
+typedef struct {
+	double min;
+	double max;
+	double step;
+} mmt;
+
+typedef struct {
+
+	// due to the way c works,
+	// we want to put similar-sized
+	// items together to use up less memory.
+	int warnings;
+	int recover;
+	int NR;
+	int QMode;
+	int reslock;
+	int chondr;
+	int tidalmodel;
+	int eccentricity_model;
+	int look_up_orbit;
+	int nOrbTabParams;
+	int orbTabRows;
+	unsigned int run_opts; // we can store this as bitwise flags
+	int t_cryolava;
+
+	double time_step;
+	double speed_up;
+	double total_time;
+	double output_every;
+	double Mprim;
+	double Rprim;
+	double MOIprim;
+	double Qprimi;
+	double Qprimf;
+	double Qmode;
+	double k2prim;
+	double J2prim;
+	double J4prim;
+	double nprim;
+	double Mring;
+	double aring_in;
+	double aring_out;
+	double rhoDryRock;
+	double rhoHydrRock;
+	double tide_times;
+	double orbTab_dtime;
+
+	double *r_p;
+	double *rho_p;
+	double *Tsurf;
+	double *Tinit;
+	double *tzero;
+	double *fromRing;
+	double *nh3;
+	double *salt;
+	double *Xhydr_init;
+	double *hy;
+	double *porosity;
+	double *Xfines;
+	double *Xpores;
+	int *start_diff;
+	double *a_orb;
+	double *e_orb;
+	double *i_orb;
+	double *obl;
+	int *orb_evol;
+	int *retrograde;
+	double *t_reslock;
+	double ch;
+
+	mmt *T;
+	mmt *P;
+	mmt *pe;
+	mmt *WR;
+
+} input_spec;
+
 #include <stdio.h>
 #include <stdlib.h>
 
