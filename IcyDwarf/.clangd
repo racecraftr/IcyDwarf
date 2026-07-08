@@ -1,1 +1,1 @@
-CompileFlags: {CompilationDatabase: Release}
+CompileFlags: { Add: [-std=c11], CompilationDatabase: Release }

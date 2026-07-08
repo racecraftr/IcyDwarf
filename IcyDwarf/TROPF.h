@@ -21,6 +21,7 @@
 #define TROPF_H_
 
 #include "IcyDwarf.h"
+#include <complex.h>
 #include <float.h>
 //#include <lapacke.h>
 #include "/opt/homebrew/opt/lapack/include/lapacke.h"
@@ -83,8 +84,8 @@ int convertCSRToBand(const CSRMatrix *A, int kl, int ku, lapack_complex_double *
 
 int solvePentadiagonalSystem(const CSRMatrix *A, const double complex *b, double complex **x);
 
-int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b, 
-                               double complex **x, 
+int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b,
+                               double complex **x,
                                lapack_complex_double **AB_out, lapack_int **ipiv_out);
 
 CSRMatrix csrCopyMatrix(const CSRMatrix *src);
@@ -160,7 +161,7 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 	double complex *tilalpr = (double complex *) malloc(size_tilal*sizeof(double complex)); // If scalar, attenuation (’Rayleigh’ drag) coefficient for the horizontally rotational component of the flow.
                                                                    // If vector, subsequent components are coefficients for harmonic eddy viscosity.
 	double complex tilalpp = 0.0 + 0.0*I; // Dissipation linked to potential energy (vertical component of the flow)
-	
+
     for (i=0;i<size_tilal;i++) {
     	tilalpd[i] = 0.0 + 0.0*I;
     	tilalpr[i] = 0.0 + 0.0*I;
@@ -199,7 +200,7 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 	// TODO, add variables below for calculation by tropf_v3
 	// % PhiRns    : Gravitational potential of tidal response (normalized wrt unit-amplitude forcing potential GnFsF (usually assigned to represent grav. pot. - Phi_F ):
 	// % kLovenF   : Love number at degree of prescribed forcing (i.e. the component of PhiRns at degree of forcing.)
-	
+
 	if (sw_selfGrav && !solveMethod) printf("Warning: solving method for Dns does not account for self-gravity, set solveMethod to 1 instead\n");
 
 //	// ----------------
@@ -249,13 +250,13 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 //
 //	// Prescribe squared slowness coeff vector:
 //	tilnusqns[0] =  (1.0 + I*tilalpp/tilom)/tilcesq;
-	
+
 //	// ----------------
 //  // From TROPF_v3: Love numbers at nonzero tidal potential terms. Commenting out for integration with IcyDwarf because we're calling TROPF() only 1 degree/order/propagation direction at a time so nF is a scalar, not an array
 //  // ----------------
 
     double complex * PhiRns = (double complex *) malloc (N*sizeof(double complex)); // Gravitational potential of the tidal response
-    
+
     for (i=0;i<N;i++) PhiRns[i] = 0.0 + 0.0*I;
 
 //	int Gns_nnz = 0; // Number of nonzero elements in Gns
@@ -270,7 +271,7 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 //			j++;
 //		}
 //	}
-//	
+//
 //	// Admittance = ratio of nondimensional pressure response to nondimensional tidal potential = Love number at degree (nF) and order (sF) of forcing
 //	double complex * knFsF = (double complex *) malloc (Gns_nnz*sizeof(double complex));
 //	double complex * GnFsF = (double complex *) malloc (Gns_nnz*sizeof(double complex));
@@ -280,18 +281,18 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 //		GnFsF[i] = Gns[nF[i]-sF]; // Normalization for PhiRns
 //      kLovenF[i] = 0.0 + 0.0*I;
 //	}
-	
+
 	// ----------------
     // Process inputs from thermal()
     // ----------------
-    
+
     // Dissipation terms
     tilalpp = 0.0 + 0.0*I;
     for (i=0;i<size_tilal;i++) {
 		tilalpd[0] = 0.0 + 0.0*I;
 		tilalpr[0] = 0.0 + 0.0*I;
 	}
-	
+
     if (diss_type == 0 || diss_type == 2) { // Rayleigh drag, kinetic energy dissipation
 		tilalpd[0] = 1.0/tilT + 0.0*I;
 		tilalpr[0] = 1.0/tilT + 0.0*I;
@@ -303,22 +304,22 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 
 	// Prescribe squared slowness coeff vector:
 	tilnusqns[0] =  (1.0 + I*tilalpp/tilom)/tilcesq;
-	
+
 	// Degree and order of forcing, associated gravitational potential
 	Gns[nF-s] = I*0.5/PnFsF_amp;
-	
+
     // ----------------
     // Call tropf()
     // ----------------
-    
+
     // For TROPF v3, Gns_nnz is an arbitrary integer
 //    tropf(N, tilOm, tilom, s, Gns_nnz, Gns, Kns, dns, ens, size_tilal, tilalpd, tilalpr, size_tilnusqns, tilnusqns, &Dns, &Rns, &pns,
 //    		&calWns, &calDns, &calEKns, &calEPns, &PhiRns, solveMethod, sw_selfGrav, rho_ratio);
-    		
+
     // For IcyDwarf coupling, Gns_nnz = 1 (single nF)
     tropf(N, tilOm, tilom, s, 1, Gns, Kns, dns, ens, size_tilal, tilalpd, tilalpr, size_tilnusqns, tilnusqns, &Dns, &Rns, &pns,
     		&calWns, &calDns, &calEKns, &calEPns, &PhiRns, solveMethod, sw_selfGrav, rho_ratio);
-    		
+
 //    printf("\n calWns:\n");
 //    for (i=0;i<N;i++) printf("%g\n", calWns[i]);
 //    printf("\n calDns:\n");
@@ -327,7 +328,7 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 //    for (i=0;i<N;i++) printf("%g\n", calEKns[i]);
 //    printf("\n calEPns:\n");
 //    for (i=0;i<N;i++) printf("%g\n", calEPns[i]);
-    
+
     // For TROPF v3
     // Love number = pressure/potential admittance at degree(s) nF (knFsF = 1 indicates an equilibrium tide response)
 	// knFsF = pns((nF-sF)+1)/Gns((nF-sF)+1); % Love number at degree(s) nF
@@ -339,13 +340,13 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 
     // For IcyDwarf coupling (single nF)
 	*knFsF = pns[nF-s] / Gns[nF-s];
-	
+
 	// For TROPF v3
 //	for (i=0;i<Gns_nnz;i++) PhiRns[nF[i]-sF] = PhiRns[nF[i]-sF] / GnFsF[i]; // Normalization to forcing potential. TODO The dimensions here don't work out if Gns_nnz > 1
-	
+
 	// For IcyDwarf
 	for (i=0;i<N;i++) PhiRns[i] = PhiRns[i] / Gns[nF-s]; // Normalization to forcing potential
-	
+
 	// For TROPF v3
 	// Love number at the degree(s)/order of Gns forcing:
 //	printf("\n kLovenF:\n");
@@ -353,10 +354,10 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 //		kLovenF[i] = PhiRns[nF[i]-sF]; // Response potential/forcing potential Love number at degree(s) nF
 //		printf("%d %g %g\n", nF[i], creal(kLovenF[i]), cimag(kLovenF[i]));
 //	}
-	
+
 	// For IcyDwarf
 	*kLovenF = PhiRns[nF-s];
-	
+
 	// Calculate total power, = sum over all degrees for W or D or 2*alphad/r*KE + 2*alphap*PE
 	*P_fluidtide = 0.0;
 	for (i=0;i<N;i++) *P_fluidtide = *P_fluidtide + calWns[i];
@@ -370,18 +371,18 @@ int TROPF(double tilcesq, double tilT, int diss_type, double complex tilom, int 
 	free(tilalpd);
 	free(tilalpr);
 	free(tilnusqns);
-	
+
 	free(Dns);
     free(Rns);
     free(pns);
-    
+
     free(calWns);
     free(calDns);
     free(calEKns);
     free(calEPns);
-    
+
     free(PhiRns);
-    
+
 //    free(knFsF);
 //    free(GnFsF);
 //    free(kLovenF);
@@ -518,16 +519,16 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 	double complex *LBivalues = (double complex *) malloc(N*sizeof(double complex));
 	for (i=0;i<N;i++) LBivalues[i] = 1.0/((tilom + I*sum_dissrvecs[i])*lvec[i] - s*tilOm);
 	CSRMatrix LBi = createCSRMatrix(N, N, N, diagIndices, diagIndices, LBivalues); // Diagonal
-	
+
 	free(lvec);
-	
+
 	for (i=0;i<N;i++) free (dissdvecs[i]);
     for (i=0;i<N;i++) free (dissrvecs[i]);
 	free(dissdvecs);
 	free(dissrvecs);
 	free(sum_dissdvecs);
 	free(sum_dissrvecs);
-	
+
 	free(LAvalues);
 	free(LCvalues);
 	free(LDvalues);
@@ -668,9 +669,9 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 	double complex * eyeValues = (double complex *) malloc(N*sizeof(double complex));
 	for (i=0;i<N;i++) eyeValues[i] = 1.0 + 0.0*I;
 	CSRMatrix eye = createCSRMatrix(N, N, N, diagIndices, diagIndices, eyeValues); // Diagonal
-	
+
 	// Self-gravity term, inverse of LN: (this is the operator such that LN*PhiR = p), used in solveMethod 2 and to calculate calDns and calEPns with self-gravity
-		
+
 	// iLN = spdiags(-3./(2*nvec+1).*rho_ratio, 0, N, N);
 	double complex *iLNvalues = (double complex *) malloc(N*sizeof(double complex));
 	for (i=0;i<N;i++) iLNvalues[i] = -3.0/(2.0*nvec[i] + 1.0)*rho_ratio;
@@ -679,7 +680,7 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 	// ------------------------------------
 	// Solve (method 1/2)
 	// ------------------------------------
-	
+
 	if (!solveMethod) {
 
 		// Solve for Dns, then calculate Rns and pns from the Dns solution:
@@ -689,7 +690,7 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 		for (i=0;i<LtilmfD2.nnz;i++) LtilmfD2.values[i] = -LtilmfD2.values[i];
 		CSRMatrix LtilmfD3 = csrMatrixAdd(LD, LtilmfD2);
 		CSRMatrix LtilmfD = csrMatrixMultiply(&LLi, &LtilmfD3); // Pentadiagonal
-	
+
 		// Build QtilmfD: QtilmfD = (1/tilom)*LVi*(Kns) + LLi*dns + LLi*LC*LBi*ens
 		double complex * QtilmfD = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LVi, Kns, &QtilmfD);
@@ -704,20 +705,20 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 		double complex * QtilmfD3 = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LLi, QtilmfD3b, &QtilmfD3);
 		vectorAdd(QtilmfD, QtilmfD3, &QtilmfD, 1, N);
-	
+
 		double complex * LHS = (double complex *) malloc(N*sizeof(double complex));
 		vectorAdd(Gns, QtilmfD, &LHS, 1, N);
-	
+
 		// Solve for Dns: LtilmfD * Dns = Gns + QtilmfD
 		solvePentadiagonalSystem(&LtilmfD, LHS, &(*Dns));
-		
+
 		// Older solvers, gmres may not work
 		//	int maxIter = 1e4; // Prelim tests suggest at least 50k are needed
 		//	double tolerance = DBL_EPSILON; // 1.0e-9; // Prelim tests suggest at least 1e-9 is needed
 		//	biconjugateGradientStabilizedSolve(LtilmfD, LHS, &(*Dns), maxIter, tolerance);
 		//	int restart = 1;
 		//	gmresSolve(LtilmfD, LHS, &(*Dns), maxIter, restart, tolerance);
-	
+
 	    // Get pns from Dns: pns = (1/tilom) * LVi * (LL*Dns - Kns)
 		double complex * pns1 = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LL, *Dns, &pns1);
@@ -728,7 +729,7 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 		vectorAdd(pns1, pns2, &pns3, 1, N);
 		csrMatrixVectorMultiply(LVi, pns3, &(*pns));
 		for (i=0;i<N;i++) (*pns)[i] = 1.0/tilom*(*pns)[i];
-		
+
 		freeCSRMatrix(&LtilmfD1);
 		freeCSRMatrix(&LtilmfD2);
 		freeCSRMatrix(&LtilmfD3);
@@ -737,21 +738,21 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 		free(QtilmfD3);
 		free(QtilmfD3a);
 		free(QtilmfD3b);
-		
+
 		free(pns1);
 		free(pns2);
 		free(pns3);
-		
+
 		freeCSRMatrix(&LtilmfD);
 		free(QtilmfD);
 		free(LHS);
 	}
 	else {
-		
+
 		// ------------------------------------
 		// Solve (method 2/2), only method that allows for self-gravity
 		// ------------------------------------
-	
+
 		//	// Alternatively, solve for pns, then calculate Dns and Rns from the pns solution. That's the one we want, it allows calculating the work. We're not worried about calculating the velocities.
 		//	% Ltilp     = build_Ltilp(tilom, LV, LLi,LA,LC,LBi)  ;
 		// Ltilp  =  LLi * ( LA - LC * LBi * LC ) * tilom * LLi * LV  + speye(N,N);
@@ -763,9 +764,9 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 		CSRMatrix Ltilp4 = csrMatrixAdd(LA, Ltilp3);
 		CSRMatrix Ltilp5 = csrMatrixMultiply(&Ltilp4, &Ltilp1);
 		CSRMatrix Ltilp6 = csrMatrixMultiply(&LLi, &Ltilp5); // Pentadiagonal
-		 
+
 		CSRMatrix Ltilp = csrMatrixAdd(Ltilp6, eye);
-		
+
 		//	% Qtilp     = build_Qtilp(Kns,dns,ens,LLi,LA,LBi,LC) ;
 		// Qtilp =  - LLi*(LA - LC*LBi*LC)*LLi*(Kns) + LLi*dns + LLi*LC*LBi*ens ;
 		double complex * Qtilp1 = (double complex *) malloc(N*sizeof(double complex));
@@ -774,10 +775,10 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 		csrMatrixVectorMultiply(LC, Qtilp1, &Qtilp2);
 		double complex * Qtilp3 = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LLi, Qtilp2, &Qtilp3);
-		
+
 		double complex * Qtilp4 = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LLi, dns, &Qtilp4);
-		
+
 		double complex * Qtilp5 = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LLi, Kns, &Qtilp5);
 		double complex * Qtilp6 = (double complex *) malloc(N*sizeof(double complex));
@@ -785,16 +786,16 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 		double complex * Qtilp7 = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LLi, Qtilp6, &Qtilp7);
 		for (i=0;i<N;i++) Qtilp7[i] = -Qtilp7[i];
-		
+
 		double complex * Qtilp8 = (double complex *) malloc(N*sizeof(double complex));
 		vectorAdd(Qtilp7, Qtilp4, &Qtilp8, 1, N);
 		double complex * Qtilp = (double complex *) malloc(N*sizeof(double complex));
 		vectorAdd(Qtilp8, Qtilp3, &Qtilp, 1, N);
-		
+
 		// Right-hand side
 		double complex * LHSp = (double complex *) malloc(N*sizeof(double complex));
 		vectorAdd(Gns, Qtilp, &LHSp, 1, N);
-		
+
 		if (sw_selfGrav) {
 			// pns = (Ltilp + iLN) \ (Gns + Qtilp); % pns calculated with self gravity included
 			CSRMatrix Ltilp_iLN = csrMatrixAdd(Ltilp, iLN);
@@ -802,26 +803,26 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 			freeCSRMatrix(&Ltilp_iLN);
 		}
 		else {
-			//	% pns       = Ltilp \ (Gns + Qtilp)  
+			//	% pns       = Ltilp \ (Gns + Qtilp)
 			solvePentadiagonalSystem(&Ltilp, LHSp, &(*pns));
 		}
-	
+
 		//	% Dns       = DnsFrompns(pns,Kns,tilom,  LLi,LV);
-		// Get Dns from pns: Dns = tilom*LLi*LV*(pns) + LLi*(Kns); 
+		// Get Dns from pns: Dns = tilom*LLi*LV*(pns) + LLi*(Kns);
 		double complex * Dns1 = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LV, *pns, &Dns1);
 		double complex * Dns2 = (double complex *) malloc(N*sizeof(double complex));
 		csrMatrixVectorMultiply(LLi, Dns1, &Dns2);
 		for (i=0;i<N;i++) Dns2[i] = tilom*Dns2[i];
 		vectorAdd(Dns2, Qtilp5, &(*Dns), 1, N);
-		
+
 		freeCSRMatrix(&Ltilp1);
 		freeCSRMatrix(&Ltilp2);
 		freeCSRMatrix(&Ltilp3);
 		freeCSRMatrix(&Ltilp4);
 		freeCSRMatrix(&Ltilp5);
 		freeCSRMatrix(&Ltilp6);
-		
+
 		free(Qtilp1);
 		free(Qtilp2);
 		free(Qtilp3);
@@ -830,19 +831,19 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 		free(Qtilp6);
 		free(Qtilp7);
 		free(Qtilp8);
-	
+
 		free(Dns1);
 		free(Dns2);
-		
+
 		freeCSRMatrix(&Ltilp);
 		free(Qtilp);
 		free(LHSp);
 	}
-	
+
 	// ------------------------------------
 	// This is needed for both solving methods
 	// ------------------------------------
-	
+
 	// Get Rns from Dns: Rns = -LBi * (LC*Dns + ens)
 	double complex * Rns1 = (double complex *) malloc(N*sizeof(double complex));
 	csrMatrixVectorMultiply(LC, *Dns, &Rns1);
@@ -864,7 +865,7 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 	double * calWns_temp = (double *) malloc(N*sizeof(double));
 
 	globeTimeAvg(&calWns_temp, calWns1, calWns3, s, nvec, N);
-	
+
 	for (i=0;i<N;i++) calWns1[i] = -I*(*pns)[i] - (-I*Gns[i]);
 
 	globeTimeAvg(&(*calWns), calWns1, Kns, s, nvec, N);
@@ -915,19 +916,19 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 	double complex * calDns10 = (double complex *) malloc(N*sizeof(double complex));
 	for (i=0;i<N;i++) calDns10[i] = tilom*calDns8[i];
 	double * calDns_tot5 = (double *) malloc(N*sizeof(double));
-	
-	 // If self-gravity, the above last term for calDns is instead + (  1 ) * globeTimeAverage( (speye(N) + iLN)*(tilom*(-1i*pns))     , (imag(LV)*(-1i*pns))   , s )   ;	 	
+
+	 // If self-gravity, the above last term for calDns is instead + (  1 ) * globeTimeAverage( (speye(N) + iLN)*(tilom*(-1i*pns))     , (imag(LV)*(-1i*pns))   , s )   ;
 	CSRMatrix calDnsMat = csrMatrixAdd(eye, iLN);
 	double complex * calDns11 = (double complex *) malloc(N*sizeof(double complex));
-	
-	if (!sw_selfGrav || !solveMethod) { 
+
+	if (!sw_selfGrav || !solveMethod) {
 		globeTimeAvg(&calDns_tot5, calDns10, calDns9, s, nvec, N);
 	}
 	else { // If self-gravity, further multiply calDns_tot5 by (speye(N) + 1)
 		csrMatrixVectorMultiply(calDnsMat, calDns10, &calDns11);
 	 	globeTimeAvg(&calDns_tot5, calDns11, calDns9, s, nvec, N);
 	}
-	
+
 	for (i=0;i<N;i++) (*calDns)[i] = -0.5*(calDns_tot1[i] + calDns_tot2[i] + calDns_tot3[i] + calDns_tot4[i]) + calDns_tot5[i];
 
 	// Kinetic energy density
@@ -937,7 +938,7 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 
 	double * calEKns_temp = (double *) malloc(N*sizeof(double));
 	globeTimeAvg(&calEKns_temp, calDns4, calDns7, s, nvec, N);
-	
+
 	for (i=0;i<N;i++) (*calEKns)[i] = -0.5*((*calEKns)[i] + calEKns_temp[i]);
 
 	// Potential energy density
@@ -972,18 +973,18 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 	freeCSRMatrix(&LVi);
 	freeCSRMatrix(&LLi);
 	freeCSRMatrix(&LBi);
-	
+
 	free(diagIndices);
 	free(triDiagRowIndices);
 	free(triDiagColIndices);
-	
+
 	free(Rns1);
-	
+
 	free(calWns1);
 	free(calWns2);
 	free(calWns3);
 	free(calWns_temp);
-	
+
 	free(calDns1);
 	free(calDns2);
 	free(calDns3);
@@ -996,24 +997,24 @@ int tropf(int N, double complex tilOm, double complex tilom, int s, int Gns_nnz,
 	free(calDns10);
 	free(calDns11);
 	freeCSRMatrix(&calDnsMat);
-	
+
 	free(calDns_tot1);
 	free(calDns_tot2);
 	free(calDns_tot3);
 	free(calDns_tot4);
 	free(calDns_tot5);
-	
+
 	free(calEKns_temp);
-	
+
 	free(calEPns1);
 	free(calEPns2);
-	
+
 	freeCSRMatrix(&realLV);
 	freeCSRMatrix(&imagLV);
-	
+
 	freeCSRMatrix(&iLN);
 	freeCSRMatrix(&eye);
-		
+
 	free(eyeValues);
 	free(iLNvalues);
 
@@ -1547,17 +1548,17 @@ int vectorCopy(const double complex *src, double complex **dest, int n) {
  * @return L2-norm of the vector
  */
 double vectorNorm(const double complex *x, int n) {
-	
+
 	int i = 0;
 	double norm = 0.0;
 	double complex * cx = (double complex *)malloc (n * sizeof(double complex));
-	
+
 	for (i=0;i<n;i++) cx[i] = creal(x[i]) - I*cimag(x[i]);
-	
+
     norm = sqrt(dotProduct(x, cx, n));
-    
+
     free(cx);
-    
+
     return norm;
 }
 
@@ -1628,12 +1629,12 @@ int biconjugateGradientStabilizedSolve(CSRMatrix A, const double complex *b, dou
 		        }
 		        rho = dotProduct(r_hat, r, n);
 		    }
-		    
+
 		    if (fabs(omega) < DBL_EPSILON) {
 		        // Use a default value instead
 		        omega = 1e-14;
 		    }
-		    
+
 		    // If still unstable after recovery attempts
 		    if (cabs(rho) < DBL_EPSILON || fabs(omega) < DBL_EPSILON) {
 //				printf("rho=%g+%g*i, omega=%g, eps=%g, breaking\n", creal(rho), cimag(rho), omega, DBL_EPSILON);
@@ -1691,7 +1692,7 @@ int biconjugateGradientStabilizedSolve(CSRMatrix A, const double complex *b, dou
         rho_prev = rho;
     }
 //    printf("final iteration: %d, maxIter was %d, r_norm=%g, r_norm/initial_r_norm = %g, tolerance = %g\n", iter, maxIter, r_norm, r_norm / initial_r_norm, tolerance);
-	
+
     // Free workspace
     free(r);
     free(r_hat);
@@ -1714,37 +1715,37 @@ int biconjugateGradientStabilizedSolve(CSRMatrix A, const double complex *b, dou
  * @param tolerance Convergence tolerance
  * @return Number of iterations performed
  */
-int gmresSolve(CSRMatrix A, const double complex *b, double complex **x, 
+int gmresSolve(CSRMatrix A, const double complex *b, double complex **x,
               int maxIter, int restart, double tolerance) {
     int n = A.rows;
-    
+
     // Allocate Arnoldi vectors (V) and Hessenberg matrix (H)
     double complex **V = (double complex **)malloc((restart+1) * sizeof(double complex *));
     for (int i = 0; i <= restart; i++) {
         V[i] = (double complex *)malloc(n * sizeof(double complex));
     }
-    
+
     double complex **H = (double complex **)malloc((restart+1) * sizeof(double complex *));
     for (int i = 0; i <= restart; i++) {
         H[i] = (double complex *)calloc(restart, sizeof(double complex));
     }
-    
+
     // Other allocations (rotation factors, etc.)
     double complex *c = (double complex *)malloc(restart * sizeof(double complex));
     double complex *s = (double complex *)malloc(restart * sizeof(double complex));
     double complex *y = (double complex *)malloc((restart+1) * sizeof(double complex));
     double complex *g = (double complex *)malloc((restart+1) * sizeof(double complex));
-    
+
     // Initial residual
     double complex *r = (double complex *)malloc(n * sizeof(double complex));
     csrMatrixVectorMultiply(A, *x, &r);
     for (int i = 0; i < n; i++) {
         r[i] = b[i] - r[i];
     }
-    
+
     double beta = vectorNorm(r, n);  // This is correctly a real double
     double initial_residual = beta;   // Also a real double
-    
+
     if (beta < tolerance) {
         // Already converged
         for (int i = 0; i <= restart; i++) {
@@ -1760,31 +1761,31 @@ int gmresSolve(CSRMatrix A, const double complex *b, double complex **x,
         free(r);
         return 0;
     }
-    
+
     printf("Initial residual: %g\n", beta);
-    
+
     // Main iteration loop
     int iter = 0;
     int outer_iter = 0;
-    
+
     while (iter < maxIter && beta > tolerance * initial_residual) {
         // Initialize the first Arnoldi vector
         for (int i = 0; i < n; i++) {
             V[0][i] = r[i] / beta;
         }
-        
+
         // Initialize rhs of the least squares problem
         for (int i = 0; i <= restart; i++) {
             g[i] = 0.0;
         }
         g[0] = beta;  // Store beta in the complex g vector, but beta itself is real
-        
+
         // Arnoldi process
         int k;
         for (k = 0; k < restart && iter < maxIter; k++, iter++) {
             // Generate new Arnoldi vector
             csrMatrixVectorMultiply(A, V[k], &V[k+1]);
-            
+
             // Modified Gram-Schmidt orthogonalization
             for (int j = 0; j <= k; j++) {
                 H[j][k] = dotProduct(V[j], V[k+1], n);
@@ -1792,11 +1793,11 @@ int gmresSolve(CSRMatrix A, const double complex *b, double complex **x,
                     V[k+1][i] -= H[j][k] * V[j][i];
                 }
             }
-            
+
             // The norm of the vector is a real value
             double h_k1_k = vectorNorm(V[k+1], n);
             H[k+1][k] = h_k1_k;  // Store in complex matrix, but it's a real value
-            
+
             // Normalize the new vector
             if (h_k1_k > DBL_EPSILON) {
                 for (int i = 0; i < n; i++) {
@@ -1808,14 +1809,14 @@ int gmresSolve(CSRMatrix A, const double complex *b, double complex **x,
                     V[k+1][i] = 0.0;
                 }
             }
-            
+
             // Apply previous Givens rotations to H
             for (int i = 0; i < k; i++) {
                 double complex temp = c[i] * H[i][k] + s[i] * H[i+1][k];
                 H[i+1][k] = -conj(s[i]) * H[i][k] + c[i] * H[i+1][k];
                 H[i][k] = temp;
             }
-            
+
             // Compute new Givens rotation
             double complex beta_rot = csqrt(H[k][k] * conj(H[k][k]) + H[k+1][k] * conj(H[k+1][k]));
             if (cabs(beta_rot) > DBL_EPSILON) {
@@ -1825,29 +1826,29 @@ int gmresSolve(CSRMatrix A, const double complex *b, double complex **x,
                 c[k] = 1.0;
                 s[k] = 0.0;
             }
-            
+
             // Apply new rotation to H and g
             H[k][k] = c[k] * H[k][k] + s[k] * H[k+1][k];
             H[k+1][k] = 0.0;
-            
+
             // Apply the rotation to g
             double complex temp_g = c[k] * g[k];
             g[k+1] = -conj(s[k]) * g[k];
             g[k] = temp_g;
-            
+
             // Check convergence - this is the norm of the residual, a real value
             beta = cabs(g[k+1]);
-            
+
             if (iter % 10 == 0 || beta < tolerance * initial_residual) {
                 printf("Iteration %d, residual = %g\n", iter, beta);
             }
-            
+
             if (beta < tolerance * initial_residual) {
                 k++;
                 break;
             }
         }
-        
+
         // Solve the triangular system H(1:k,1:k) * y = g(1:k)
         for (int i = k-1; i >= 0; i--) {
             y[i] = g[i];
@@ -1856,32 +1857,32 @@ int gmresSolve(CSRMatrix A, const double complex *b, double complex **x,
             }
             y[i] /= H[i][i];
         }
-        
+
         // Update the solution x = x + V(1:n,1:k) * y
         for (int j = 0; j < k; j++) {
             for (int i = 0; i < n; i++) {
                 (*x)[i] += V[j][i] * y[j];
             }
         }
-        
+
         // Compute the residual for the next restart
         csrMatrixVectorMultiply(A, *x, &r);
         for (int i = 0; i < n; i++) {
             r[i] = b[i] - r[i];
         }
         beta = vectorNorm(r, n);  // Again, this is a real value
-        
+
         outer_iter++;
         printf("Restart %d, residual = %g\n", outer_iter, beta);
-        
+
         if (beta < tolerance * initial_residual) {
             break;
         }
     }
-    
-    printf("Final residual: %g after %d iterations (%d restarts)\n", 
+
+    printf("Final residual: %g after %d iterations (%d restarts)\n",
            beta, iter, outer_iter);
-    
+
     // Free memory
     for (int i = 0; i <= restart; i++) {
         free(V[i]);
@@ -1894,13 +1895,13 @@ int gmresSolve(CSRMatrix A, const double complex *b, double complex **x,
     free(y);
     free(g);
     free(r);
-    
+
     return iter;
 }
 
 /**
  * Convert a CSR matrix to LAPACK's band storage format for a pentadiagonal matrix
- * 
+ *
  * @param A The CSR matrix to convert
  * @param kl Number of subdiagonals (2 for pentadiagonal)
  * @param ku Number of superdiagonals (2 for pentadiagonal)
@@ -1909,26 +1910,26 @@ int gmresSolve(CSRMatrix A, const double complex *b, double complex **x,
  */
 int convertCSRToBand(const CSRMatrix *A, int kl, int ku, lapack_complex_double *AB, int ldab) {
     int n = A->rows;
-    
+
     // Initialize AB to zeros
     for (int i = 0; i < ldab * n; i++) {
         AB[i] = 0.0 + 0.0*I;
     }
-    
+
     // Process each row of the CSR matrix
     for (int i = 0; i < n; i++) {
         // For each non-zero element in row i
         for (int j_idx = A->rowPointers[i]; j_idx < A->rowPointers[i+1]; j_idx++) {
             int j = A->colIndices[j_idx];
             double complex val = A->values[j_idx];
-            
+
             // Check if the element is within the band
             if (j >= i - kl && j <= i + ku) {
                 // Map (i,j) to the band storage
                 // In band storage: AB(kl+ku+1+i-j, j) = A(i,j)
                 int band_row = kl + ku + i - j;
                 int band_idx = j * ldab + band_row;
-                
+
                 // Store the value in the band format
                 AB[band_idx] = val;
             }
@@ -1939,7 +1940,7 @@ int convertCSRToBand(const CSRMatrix *A, int kl, int ku, lapack_complex_double *
 
 /**
  * Solve a complex linear system Ax = b using LAPACK's band solver
- * 
+ *
  * @param A The coefficient matrix in CSR format
  * @param b The right-hand side vector
  * @param x Pointer to the solution vector (will be allocated or overwritten)
@@ -1952,17 +1953,17 @@ int solvePentadiagonalSystem(const CSRMatrix *A, const double complex *b, double
     int ldab = 2*kl + ku + 1;  // Leading dimension of AB
     int nrhs = 1;  // Number of right-hand sides
     int info;
-    
+
     // Allocate memory for band matrix
     lapack_complex_double *AB = (lapack_complex_double*)malloc(ldab * n * sizeof(lapack_complex_double));
     if (!AB) {
         fprintf(stderr, "Memory allocation failed for AB\n");
         return -1;
     }
-    
+
     // Convert CSR to band storage
     convertCSRToBand(A, kl, ku, AB, ldab);
-    
+
     // Allocate or reuse x
     if (*x == NULL) {
         *x = (double complex*)malloc(n * sizeof(double complex));
@@ -1972,7 +1973,7 @@ int solvePentadiagonalSystem(const CSRMatrix *A, const double complex *b, double
             return -2;
         }
     }
-    
+
     // Copy b to working array B (LAPACKE may overwrite it)
     lapack_complex_double *B = (lapack_complex_double*)malloc(n * sizeof(lapack_complex_double));
     if (!B) {
@@ -1981,11 +1982,11 @@ int solvePentadiagonalSystem(const CSRMatrix *A, const double complex *b, double
         fprintf(stderr, "Memory allocation failed for B\n");
         return -3;
     }
-    
+
     for (int i = 0; i < n; i++) {
         B[i] = b[i];
     }
-    
+
     // Allocate pivot indices
     lapack_int *ipiv = (lapack_int*)malloc(n * sizeof(lapack_int));
     if (!ipiv) {
@@ -1995,10 +1996,10 @@ int solvePentadiagonalSystem(const CSRMatrix *A, const double complex *b, double
         fprintf(stderr, "Memory allocation failed for ipiv\n");
         return -4;
     }
-    
+
     // Call LAPACK band solver
     info = LAPACKE_zgbsv(LAPACK_COL_MAJOR, n, kl, ku, nrhs, AB, ldab, ipiv, B, n);
-    
+
     if (info != 0) {
         fprintf(stderr, "LAPACKE_zgbsv failed with error %d\n", info);
         free(AB);
@@ -2006,17 +2007,17 @@ int solvePentadiagonalSystem(const CSRMatrix *A, const double complex *b, double
         free(ipiv);
         return info;
     }
-    
+
     // Copy solution from B to x
     for (int i = 0; i < n; i++) {
         (*x)[i] = B[i];
     }
-    
+
     // Free memory
     free(AB);
     free(B);
     free(ipiv);
-    
+
     return 0;
 }
 
@@ -2024,8 +2025,8 @@ int solvePentadiagonalSystem(const CSRMatrix *A, const double complex *b, double
  * Alternative version that uses factorization and solve separately
  * Useful when solving multiple systems with the same matrix
  */
-int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b, 
-                               double complex **x, 
+int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b,
+                               double complex **x,
                                lapack_complex_double **AB_out, lapack_int **ipiv_out) {
     int n = A->rows;
     int kl = 2;  // For pentadiagonal
@@ -2033,10 +2034,10 @@ int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b,
     int ldab = 2*kl + ku + 1;
     int nrhs = 1;
     int info;
-    
+
     // Check if we need to allocate new storage
     int new_allocation = (*AB_out == NULL || *ipiv_out == NULL);
-    
+
     // Allocate or reuse band storage
     if (*AB_out == NULL) {
         *AB_out = (lapack_complex_double*)malloc(ldab * n * sizeof(lapack_complex_double));
@@ -2045,7 +2046,7 @@ int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b,
             return -1;
         }
     }
-    
+
     // Allocate or reuse pivot indices
     if (*ipiv_out == NULL) {
         *ipiv_out = (lapack_int*)malloc(n * sizeof(lapack_int));
@@ -2056,13 +2057,13 @@ int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b,
             return -2;
         }
     }
-    
+
     // Only convert and factor the matrix if this is a new allocation
     // (assumes the matrix is unchanged if reusing storage)
     if (new_allocation) {
         // Convert CSR to band storage
         convertCSRToBand(A, kl, ku, *AB_out, ldab);
-        
+
         // Factor the matrix
         info = LAPACKE_zgbtrf(LAPACK_COL_MAJOR, n, n, kl, ku, *AB_out, ldab, *ipiv_out);
         if (info != 0) {
@@ -2074,7 +2075,7 @@ int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b,
             return info;
         }
     }
-    
+
     // Allocate or reuse x
     if (*x == NULL) {
         *x = (double complex*)malloc(n * sizeof(double complex));
@@ -2089,22 +2090,22 @@ int factorAndSolvePentadiagonal(const CSRMatrix *A, const double complex *b,
             return -3;
         }
     }
-    
+
     // Copy b to x (LAPACKE will overwrite it with the solution)
     for (int i = 0; i < n; i++) {
         (*x)[i] = b[i];
     }
-    
+
     // Solve using the factored matrix
-    info = LAPACKE_zgbtrs(LAPACK_COL_MAJOR, 'N', n, kl, ku, nrhs, 
+    info = LAPACKE_zgbtrs(LAPACK_COL_MAJOR, 'N', n, kl, ku, nrhs,
                          *AB_out, ldab, *ipiv_out, (lapack_complex_double*)*x, n);
-    
+
     if (info != 0) {
         fprintf(stderr, "LAPACKE_zgbtrs failed with error %d\n", info);
         // Don't free the factorization, just return error
         return info;
     }
-    
+
     return 0;
 }
 

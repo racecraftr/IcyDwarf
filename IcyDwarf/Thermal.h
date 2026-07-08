@@ -1091,13 +1091,13 @@ int state(int os, char path[1024], int itime, int im, int ir, double E,
 		title[0] = '\0';
 		base_dir[0] = '\0';
 		filename_with_index[0] = '\0';
-		
+
 		// Build filename with index
 		char im_str[16];
 		snprintf(im_str, sizeof(im_str), "%d", im);
-		snprintf(filename_with_index, sizeof(filename_with_index), 
+		snprintf(filename_with_index, sizeof(filename_with_index),
 		         "Outputs%s%sThermal.txt", PATH_SEPARATOR_STR, im_str);
-		
+
 		if (get_icydwarf_base_directory(path, base_dir, sizeof(base_dir)) == 0) {
 			build_full_path(title, sizeof(title), base_dir, filename_with_index);
 		} else {
